@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SOC Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0b1a2e;--panel:#1b2a40;--panel2:#142238;--line:#2a3b55;--text:#e8eef7;--mute:#8a9bb4;--org:#ff7a1a;--org2:#e8452c;--blue:#3b82f6;--grn:#22c55e;--red:#ef4444;--yel:#eab308;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.45 'Plus Jakarta Sans',system-ui,Segoe UI,Arial,sans-serif}
+.app{display:flex;min-height:100vh;padding:14px;gap:14px;max-width:1320px;margin:auto}
+.side{width:52px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0;flex:none}
+.side button{width:34px;height:34px;border:0;border-radius:9px;background:none;color:var(--mute);cursor:pointer;font-size:16px}
+.side button.on{background:var(--org);color:#fff}
+.side .logo{background:#fff;color:#0b1a2e;border-radius:9px;margin-bottom:8px}
+.side .sp{flex:1}
+.main{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tab{border:0;background:none;color:var(--text);padding:8px 14px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer}
+.tab.on{background:var(--org);color:#fff;font-weight:600}
+.search{margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--text);font:inherit;font-size:13px;width:220px}
+.user{font-size:12px;text-align:right;line-height:1.2}.user small{color:var(--mute);display:block}
+h1{font-size:22px;font-weight:600;margin:22px 0 0}
+.head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.chips{display:flex;gap:2px;background:var(--panel);border-radius:999px;padding:3px;flex-wrap:wrap}
+.chip{border:0;background:none;color:var(--mute);padding:6px 12px;border-radius:999px;font:inherit;font-size:12px;cursor:pointer}
+.chip b{font-weight:500;color:var(--mute);margin-left:4px}
+.chip.on{background:var(--org);color:#fff}.chip.on b{color:#ffe3cf}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.card.hi{border-color:var(--org);box-shadow:0 0 0 1px rgba(255,122,26,.25)}
+.card h3{margin:0 0 6px;font-size:13px;font-weight:500;color:var(--mute);display:flex;justify-content:space-between}
+.big{font-size:26px;font-weight:600}
+.c4{grid-column:span 3}.c3{grid-column:span 3}.c6{grid-column:span 6}.c5{grid-column:span 5}.c7{grid-column:span 7}.c12{grid-column:span 12}
+.t1{grid-column:span 3}.t2{grid-column:span 3}.t3{grid-column:span 3}.t4{grid-column:span 3}
+.heat{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-top:12px}
+.heat i{aspect-ratio:1;border-radius:4px;background:var(--blue)}
+.bars{display:flex;justify-content:space-around;align-items:flex-end;height:70px;margin-top:12px}
+.bars div{text-align:center;font-size:10px;color:var(--mute)}
+.bars span{display:block;width:8px;border-radius:4px;margin:0 auto 6px}
+.inc{display:flex;align-items:center;gap:10px;background:var(--panel2);border-radius:8px;padding:9px 11px;margin-bottom:8px;animation:in .35s}
+@keyframes in{from{opacity:0;transform:translateY(-6px)}}
+.inc .ic{width:26px;height:26px;border-radius:7px;background:var(--panel);display:grid;place-items:center;font-size:13px}
+.inc div.t{flex:1;min-width:0}.inc strong{display:block;font-size:13px;font-weight:600}.inc small{color:var(--mute);font-size:11px}
+.tag{font-size:11px;padding:3px 9px;border-radius:6px;font-weight:600}
+.Critical{background:rgba(239,68,68,.18);color:#ff7a7a}.High{background:rgba(234,120,20,.2);color:#ffa24a}.Medium{background:rgba(59,130,246,.2);color:#7fb0ff}.Low{background:rgba(34,197,94,.18);color:#5fe08a}
+.score{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.meter{height:6px;background:var(--line);border-radius:4px;margin:10px 0 4px;overflow:hidden}.meter i{display:block;height:100%;background:var(--grn);transition:width .6s}
+.btn{border:0;background:var(--org);color:#fff;font:inherit;font-weight:600;font-size:13px;padding:9px 16px;border-radius:7px;cursor:pointer}
+.btn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--text);font-weight:500}
+.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.tool{background:var(--panel2);border-radius:9px;padding:12px}
+.tool .ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;margin-bottom:8px;font-size:13px}
+.tool strong{display:block;font-size:12px}.tool small{display:block;color:var(--mute);font-size:10px}.tool em{font-style:normal;font-size:10px}
+.vuln{background:linear-gradient(160deg,var(--org),var(--org2));border:0;color:#fff}.vuln h3{color:#fff}
+.sim{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.toast{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--panel);border:1px solid var(--org);border-radius:10px;padding:12px 16px;max-width:300px;transform:translateY(140%);transition:transform .3s;z-index:9}
+.toast.show{transform:none}
+button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+svg{display:block;width:100%}
+.leg{font-size:11px;font-weight:400}
+@media(max-width:980px){.c3,.c4,.t1,.t2,.t3,.t4{grid-column:span 6}.c5,.c6,.c7{grid-column:span 12}.search{width:100%;margin:0;order:9}}
+@media(max-width:560px){.app{padding:8px}.side{display:none}.c3,.c4,.t1,.t2,.t3,.t4{grid-column:span 12}.tools{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+[hidden]{display:none!important}.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mute);font-weight:500;text-align:left}th,td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}tbody tr[data-id]{cursor:pointer}.dt td{white-space:normal;background:var(--panel2);color:var(--mute)}.dt pre{margin:8px 0 0;color:var(--text);font-size:12px;white-space:pre-wrap}.btn.sm{padding:5px 11px;font-size:12px}
+.mute{color:var(--mute)}.frm{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.frm input,.frm select,td select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font:inherit;font-size:13px}.frm input{min-width:150px}
+.side{width:196px;align-items:stretch;padding:14px 10px;gap:3px}.side .brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px;font-size:15px}.side .brand i{font-style:normal;width:30px;height:30px;border-radius:9px;background:var(--org);display:grid;place-items:center}
+.side .nav{width:auto;height:auto;display:flex;align-items:center;gap:10px;padding:9px 10px;text-align:left;font:inherit;font-size:13px;color:var(--mute);border-radius:9px}.side .nav.on{background:var(--org);color:#fff}.side .nav:hover:not(.on){background:var(--panel);color:var(--text)}
+.nav .bd{margin-left:auto;background:var(--red);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px}.side .grp{font-size:11px;color:var(--mute);padding:14px 10px 4px}
+@media(max-width:980px){.side{width:52px}.side .lbl,.side .brand b,.side .grp,.nav .bd{display:none}.side .nav{justify-content:center}.side .brand{padding:2px 0 10px;justify-content:center}}
+@media(max-width:560px){.app{flex-direction:column}.side{display:flex;flex-direction:row;width:100%;overflow-x:auto;padding:8px}.side .brand{display:none}}
+.app{max-width:1680px}body{overflow-x:hidden}#s2{height:auto}.sel{background:var(--panel);border:1px solid var(--line);border-radius:999px;color:var(--text);padding:7px 12px;font:inherit;font-size:12px}
+.ico{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:9px;width:34px;height:34px;cursor:pointer;font-size:15px;transition:background .2s,transform .15s}.ico:hover{background:var(--line)}.ico:active{transform:scale(.94)}
+.strip{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:14px;font-size:12px}.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:12px}.pill.sim{color:#ffc933;border-color:rgba(255,201,51,.45)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--grn);animation:pulse 1.8s infinite}.pill.bad .dot{background:var(--red);animation:none}.pill.warn .dot{background:var(--yel)}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%,100%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+.card{transition:border-color .2s,box-shadow .2s}.card:hover{border-color:#3d5578;box-shadow:0 6px 24px rgba(0,0,0,.18)}.btn{transition:transform .15s,filter .15s}.btn:hover{filter:brightness(1.12)}.btn:active{transform:scale(.97)}.chip,.tab,.side .nav,tbody tr{transition:background .2s,color .2s}tbody tr[data-id]:hover,tbody tr[data-i]:hover{background:rgba(255,255,255,.04)}
+.vin{animation:vin .3s ease-out}@keyframes vin{from{opacity:0;transform:translateY(8px)}}
+body.loading .card>*:not(h3){animation:sh 1.2s ease-in-out infinite;opacity:.4}@keyframes sh{50%{opacity:.15}}
+.draw polyline{stroke-dasharray:700;stroke-dashoffset:700;animation:dr 1s ease-out forwards}@keyframes dr{to{stroke-dashoffset:0}}
+.crit{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-180%);z-index:20;background:rgba(220,38,38,.92);backdrop-filter:blur(8px);color:#fff;padding:12px 18px;border-radius:12px;display:flex;gap:12px;align-items:center;max-width:92vw;cursor:pointer;transition:transform .4s cubic-bezier(.2,.9,.3,1.2);box-shadow:0 8px 30px rgba(239,68,68,.45)}.crit.show{transform:translate(-50%,0)}
+.toast{backdrop-filter:blur(10px)}.tlst{margin:6px 0 0;padding-left:18px}.tlst li{margin:2px 0}
+body.collapsed .side{width:52px}body.collapsed .side .lbl,body.collapsed .side .brand b,body.collapsed .side .grp,body.collapsed .nav .bd{display:none}body.collapsed .side .nav{justify-content:center}body.collapsed .side .brand{justify-content:center;padding:2px 0 10px}
+[data-theme=light]{--bg:#eef2f8;--panel:#fff;--panel2:#f4f7fb;--line:#d8e0ec;--text:#14233a;--mute:#5d6f8a;color-scheme:light}[data-theme=light] .card:hover{box-shadow:0 6px 24px rgba(20,35,58,.1)}
+select:focus-visible,.ico:focus-visible,th:focus-visible{outline:2px solid var(--org);outline-offset:2px}
+@media(max-width:560px){#burger{display:none}body.collapsed .side{width:100%}body.collapsed .side .lbl{display:inline}}
+@media(prefers-reduced-motion:reduce){.dot{animation:none}.vin,.draw polyline{animation:none}}
+</style>
+</head>
+<body class="loading">
+<div class="app">
+ <nav class="side" id="side" aria-label="Main"></nav>
+ <main class="main">
+  <div class="top">
+   <button class="ico" id="burger" aria-label="Toggle sidebar" title="Toggle sidebar">&#9776;</button>
+   <button class="tab on">Security Monitoring</button><button class="tab">Threat Analysis</button><button class="tab">Alerts</button>
+   <input class="search" id="q" placeholder="Search incidents..." aria-label="Search incidents">
+   <button class="ico" id="theme" aria-label="Switch light or dark theme" title="Switch theme">&#9680;</button><div class="user"><span id="uname"></span><small><a href="#" id="logout" style="color:var(--mute)">Sign out</a></small></div>
+  </div>
+  <div class="strip" id="strip"><span class="pill" id="conn" role="status"><i class="dot"></i><b>Connecting</b></span><span class="mute" id="fresh">Waiting for events</span><span class="mute" id="upt"></span><span class="pill sim" title="Every event in this build comes from the built-in simulator, not real telemetry">SIMULATED DATA</span></div>
+  <div class="head" id="head"><h1>Security Operations Center</h1>
+   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="rng" class="sel" aria-label="Time range"><option value="15m">Last 15 minutes</option><option value="1h">Last hour</option><option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option></select><div class="chips" id="chips"></div></div></div>
+  <div class="grid" id="v1">
+   <section class="card c3"><h3>Threat Detection</h3><div class="big" id="threats">2,847</div><svg id="s1" viewBox="0 0 200 90" preserveAspectRatio="none" height="90"></svg></section>
+   <section class="card c3"><h3>Security Events</h3><div class="big" id="events" style="color:var(--blue)">15,342</div><div class="heat" id="heat"></div></section>
+   <section class="card c3 hi"><h3>System Health</h3><div class="big" style="color:var(--grn)" id="hpct">98.7%</div><div class="bars" id="bars"></div></section>
+   <section class="card c3" style="grid-row:span 2"><h3>Recent Security Incidents</h3><div id="list"></div></section>
+
+   <section class="card c6 score"><div style="flex:1;min-width:180px"><h3>Security Score</h3><div class="big" style="font-size:20px"><span id="sc">847</span>/1000</div><div class="meter"><i id="meter" style="width:84.7%"></i></div><small style="color:var(--grn)">Strong</small></div>
+    <div style="text-align:center;flex:1;min-width:180px"><p style="margin:0 0 10px;color:var(--mute)"><span id="ai"></span></p><button class="btn" id="improve">Review open alerts</button></div></section>
+   <section class="card c3" style="grid-column:span 3"><h3>Attack Simulator</h3><div class="sim" style="margin-top:4px" id="sim"></div></section>
+
+   <section class="card c6"><h3>Security Tools</h3><div class="tools" id="tools"></div></section>
+   <section class="card c6 vuln"><h3>Detections by Rule<span class="leg">alerts per rule</span></h3><svg id="s2" viewBox="0 0 400 200" height="200"></svg></section>
+  </div>
+ 
+ <div id="v2" hidden><div class="grid">
+  <section class="card c12"><h3>Threat Intelligence Lookup</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><input class="search" style="margin:0" id="ip" placeholder="IPv4, e.g. 203.0.113.45" aria-label="IP address"><button class="btn" id="lookup">Look up IP</button></div><p id="ir" style="margin:12px 0 0;color:var(--mute)">Try 203.0.113.45 (flagged in the demo list).</p></section>
+  <section class="card c12"><h3>Detection Rules</h3><div class="scroll"><table><thead><tr><th>Rule</th><th>Severity</th><th>MITRE</th><th>Trigger</th><th>Status</th></tr></thead><tbody id="rl"></tbody></table></div></section></div></div>
+ <div id="v3" hidden><section class="card"><h3>Alerts<span><select id="st" class="search" style="width:auto;margin:0 8px 0 0;padding:5px 10px"><option>Open</option><option>All</option></select><a class="btn sm" style="text-decoration:none" href="/api/export.csv">Export CSV</a></span></h3><div class="scroll"><table><thead><tr><th>Time</th><th>Rule</th><th>Severity</th><th>Host</th><th>Source IP</th><th>Risk</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div></section></div>
+ 
+ <div id="v4" hidden><section class="card"><h3>Event Logs<span><input class="search" id="lq" placeholder="Filter by host, IP, type or text" style="width:260px;margin:0" aria-label="Filter logs"></span></h3><div class="scroll"><table><thead><tr><th>Time</th><th>Source</th><th>Host</th><th>Source IP</th><th>Type</th><th>Message</th></tr></thead><tbody id="lg"></tbody></table></div></section></div>
+ <div id="v5" hidden><section class="card"><h3>Add asset</h3><div class="frm"><input id="an" placeholder="Name"><input id="aip" placeholder="IP address"><select id="at"><option>Server</option><option>Endpoint</option><option>Network</option><option>Database</option><option>Cloud</option></select><select id="ac"><option>Critical</option><option>High</option><option selected>Medium</option><option>Low</option></select><button class="btn" id="aadd">Add asset</button></div></section>
+  <section class="card" style="margin-top:14px"><h3>Asset inventory</h3><div class="scroll"><table><thead><tr><th>Name</th><th>IP address</th><th>Type</th><th>Criticality</th><th>Health</th><th>Last seen</th><th></th></tr></thead><tbody id="as"></tbody></table></div></section></div>
+ <div id="v6" hidden><section class="card"><h3>Incidents</h3><p class="mute" style="margin:0 0 10px">Click an incident to change its status, assign an analyst or add notes.</p><div class="scroll"><table><thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Assignee</th><th>Updated</th></tr></thead><tbody id="ic"></tbody></table></div></section></div>
+ <div id="v7" hidden><section class="card"><h3>Change my password</h3><div class="frm"><input id="pc" type="password" placeholder="Current password" autocomplete="current-password"><input id="pn" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><button class="btn" id="pbtn">Update password</button></div></section>
+  <section class="card" id="adm" style="margin-top:14px"><h3>Team members</h3><div class="frm"><input id="un" placeholder="Full name"><input id="uu" placeholder="Username"><input id="up" type="password" placeholder="Password (8+ characters)" autocomplete="new-password"><select id="ur"><option>ANALYST</option><option>VIEWER</option><option>ADMIN</option></select><button class="btn" id="uadd">Add user</button></div><div class="scroll"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th></th></tr></thead><tbody id="us"></tbody></table></div></section></div>
+ <div id="v8" hidden><section class="card"><h3>Audit Log</h3><div class="scroll"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead><tbody id="au"></tbody></table></div></section></div>
+ <div id="v9" hidden><section class="card"><h3>Live Events<span class="pill sim">SIMULATED DATA</span></h3>
+  <div class="frm"><input id="eq" placeholder="Search host, IP, type or text" aria-label="Search events" style="min-width:230px"><select id="es" aria-label="Severity"><option>All</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option><option>Info</option></select><button class="btn ghost sm" id="epause">Pause</button><button class="btn ghost sm" id="eclear">Clear view</button><span class="mute" id="ebuf" role="status"></span></div>
+  <div class="scroll"><table><thead id="eh"><tr><th data-k="ts" tabindex="0" style="cursor:pointer">Time &#8645;</th><th data-k="sev" tabindex="0" style="cursor:pointer">Severity &#8645;</th><th>Source IP</th><th>Destination IP</th><th>Event type</th><th>Asset</th><th>Message</th></tr></thead><tbody id="eb"></tbody></table></div>
+  <div class="frm" style="margin:12px 0 0"><button class="btn ghost sm" id="eprev">Previous</button><button class="btn ghost sm" id="enext">Next</button><span class="mute" id="ep"></span></div></section></div>
+</main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/app.js"></script>
+<script src="/pages.js"></script>
+</body>
+</html>

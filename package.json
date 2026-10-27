@@ -1,37 +1,17 @@
 {
   "name": "soc-dashboard",
-  "version": "1.0.0",
-  "description": "Simple, lightweight AI-powered SOC Dashboard (Node.js + Express + SQLite)",
-  "main": "app.js",
-  "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "test": "jest --runInBand"
-  },
+  "version": "2.0.0",
+  "description": "Working SOC dashboard: login, simulator, detection engine, risk scoring, live alerts, threat intel, CSV export",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "node --test tests/engine.test.js" },
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "connect-sqlite3": "^0.9.13",
-    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
-    "ejs": "^3.1.10",
     "express": "^4.19.2",
-    "express-rate-limit": "^7.4.0",
     "express-session": "^1.18.0",
-    "express-ejs-layouts": "^2.5.1",
-    "express-validator": "^7.2.0",
     "helmet": "^7.1.0",
-    "morgan": "^1.10.0",
-    "sequelize": "^6.37.3",
-    "socket.io": "^4.7.5",
-    "sqlite3": "^5.1.7"
+    "socket.io": "^4.7.5"
   },
-  "devDependencies": {
-    "jest": "^29.7.0",
-    "nodemon": "^3.1.4",
-    "supertest": "^7.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "engines": { "node": ">=18.0.0" }
 }
