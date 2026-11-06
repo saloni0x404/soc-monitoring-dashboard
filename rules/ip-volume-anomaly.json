@@ -1,0 +1,13 @@
+{
+  "name": "ip-volume-anomaly",
+  "title": "Anomalous Event Volume From One IP",
+  "description": "An IP generating at least 25 events in 10 minutes AND 5x more than the average of other IPs (statistical anomaly check).",
+  "severity": "MEDIUM",
+  "rule_type": "anomaly",
+  "mitre_id": "T1595",
+  "enabled": true,
+  "minEvents": 25,
+  "multiplier": 5,
+  "minPeers": 3,
+  "windowMinutes": 10
+}

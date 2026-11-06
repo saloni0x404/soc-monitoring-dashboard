@@ -1,0 +1,91 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-0">Alerts</h3>
+    <div class="text-secondary small"><%= alerts.length %> alert(s)</div>
+  </div>
+  <span class="badge bg-success"><i class="bi bi-broadcast me-1"></i>Live</span>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="GET" action="/alerts" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Search</label>
+        <input type="text" name="search" class="form-control form-control-sm" value="<%= filters.search %>" placeholder="Title, host, user...">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Severity</label>
+        <select name="severity" class="form-select form-select-sm">
+          <option value="">All</option>
+          <% ['CRITICAL','HIGH','MEDIUM','LOW'].forEach(s => { %>
+            <option value="<%= s %>" <%= filters.severity === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Status</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All</option>
+          <% ['NEW','ACKNOWLEDGED','INVESTIGATING','RESOLVED','FALSE_POSITIVE'].forEach(s => { %>
+            <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Source IP</label>
+        <input type="text" name="sourceIp" class="form-control form-control-sm" value="<%= filters.sourceIp %>">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">From</label>
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="<%= filters.dateFrom %>">
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bi bi-search"></i></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Severity</th>
+          <th>Risk Score</th>
+          <th>Source IP</th>
+          <th>Hostname</th>
+          <th>Rule</th>
+          <th>MITRE</th>
+          <th>Status</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="alertsTableBody">
+        <% if (alerts.length === 0) { %>
+          <tr><td colspan="10" class="text-center text-secondary py-4">No alerts yet. Generate events from the <a href="/simulator">Simulator</a> - e.g. click "Brute Force" a few times.</td></tr>
+        <% } %>
+        <% alerts.forEach(alert => { %>
+          <tr data-href="/alerts/<%= alert.id %>" tabindex="0" role="link" aria-label="Open alert <%= alert.title %>">
+            <td class="small text-secondary">#<%= alert.id %></td>
+            <td class="small"><%= alert.title %></td>
+            <td>
+              <% const badgeClass = { CRITICAL: 'badge-critical', HIGH: 'badge-high', MEDIUM: 'badge-medium', LOW: 'badge-low' }[alert.severity] || 'badge-info'; %>
+              <span class="badge <%= badgeClass %>"><%= alert.severity %></span>
+            </td>
+            <td class="small fw-bold"><%= alert.risk_score %></td>
+            <td class="small"><%= alert.source_ip || '—' %></td>
+            <td class="small"><%= alert.hostname || '—' %></td>
+            <td class="small"><%= alert.rule_name %></td>
+            <td class="small"><%= alert.mitre_id || '—' %></td>
+            <td><span class="badge bg-secondary"><%= alert.status %></span></td>
+            <td class="small text-secondary"><%= new Date(alert.created_at).toLocaleString() %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+

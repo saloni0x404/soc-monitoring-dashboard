@@ -1,19 +1,26 @@
-
 services:
   soc-dashboard:
     build: .
+    container_name: soc-dashboard
     ports:
-      - "127.0.0.1:${HOST_PORT:-3000}:3000"
-
+      - "3000:3000"
     environment:
-      NODE_ENV: production
-      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in your .env file}
-      ADMIN_USERNAME: ${ADMIN_USERNAME:?Set ADMIN_USERNAME in your .env file}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in your .env file}
-
+      - NODE_ENV=production
+      - PORT=3000
+      - SESSION_SECRET=${SESSION_SECRET:-change-this-to-a-long-random-string}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      - AI_PROVIDER=${AI_PROVIDER:-none}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OLLAMA_URL=${OLLAMA_URL:-}
+      - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY:-}
+      - ABUSEIPDB_API_KEY=${ABUSEIPDB_API_KEY:-}
+      - OTX_API_KEY=${OTX_API_KEY:-}
+      - DEMO_MODE=${DEMO_MODE:-false}
     volumes:
-      - soc-data:/app/data
-
+      # Persist the SQLite database across container rebuilds
+      - soc-data:/app/database
     restart: unless-stopped
 
 volumes:

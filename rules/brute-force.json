@@ -1,0 +1,11 @@
+{
+  "name": "brute-force",
+  "title": "Brute Force Attack",
+  "description": "5 or more failed login attempts from the same source IP within 5 minutes.",
+  "severity": "HIGH",
+  "rule_type": "threshold",
+  "mitre_id": "T1110",
+  "enabled": true,
+  "threshold": 5,
+  "windowMinutes": 5
+}

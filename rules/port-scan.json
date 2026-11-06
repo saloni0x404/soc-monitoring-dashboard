@@ -1,0 +1,11 @@
+{
+  "name": "port-scan",
+  "title": "Possible Port Scan",
+  "description": "One source IP contacting many ports in a short period of time.",
+  "severity": "HIGH",
+  "rule_type": "threshold",
+  "mitre_id": "T1046",
+  "enabled": true,
+  "threshold": 6,
+  "windowSeconds": 30
+}

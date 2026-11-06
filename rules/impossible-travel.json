@@ -1,0 +1,10 @@
+{
+  "name": "impossible-travel",
+  "title": "Impossible Travel",
+  "description": "Same user logging in from two different countries within 60 minutes.",
+  "severity": "HIGH",
+  "rule_type": "threshold",
+  "mitre_id": "T1078",
+  "enabled": true,
+  "windowMinutes": 60
+}

@@ -1,0 +1,9 @@
+{
+  "name": "web-attack",
+  "title": "Web Attack Pattern",
+  "description": "Request containing SQL injection, path traversal, XSS or a known attack-tool signature.",
+  "severity": "HIGH",
+  "rule_type": "immediate",
+  "mitre_id": "T1190",
+  "enabled": true
+}

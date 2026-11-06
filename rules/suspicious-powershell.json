@@ -1,0 +1,10 @@
+{
+  "name": "suspicious-powershell",
+  "title": "Suspicious PowerShell Activity",
+  "description": "PowerShell execution containing suspicious flags such as EncodedCommand, DownloadString, or Invoke-WebRequest.",
+  "severity": "HIGH",
+  "rule_type": "immediate",
+  "mitre_id": "T1059.001",
+  "enabled": true,
+  "keywords": ["EncodedCommand", "DownloadString", "Invoke-WebRequest"]
+}

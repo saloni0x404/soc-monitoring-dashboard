@@ -1,0 +1,9 @@
+{
+  "name": "privilege-escalation",
+  "title": "Possible Privilege Escalation",
+  "description": "A user account was added to a privileged group such as local Administrators.",
+  "severity": "CRITICAL",
+  "rule_type": "immediate",
+  "mitre_id": "T1068",
+  "enabled": true
+}

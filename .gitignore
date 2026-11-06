@@ -1,4 +1,11 @@
-node_modules
+node_modules/
 .env
-data
+database/*.sqlite
+database/*.sqlite-journal
+database/*.sqlite-wal
+npm-debug.log*
 *.log
+!public/samples/*.log
+.DS_Store
+coverage/
+!database/.gitkeep

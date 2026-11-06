@@ -1,0 +1,46 @@
+<section class="dashboard-heading">
+  <div><div class="eyebrow">MONITOR / EVENT STREAM</div><h1>Live monitoring</h1><div class="dashboard-subtitle">Incoming application events delivered over the authenticated Socket.IO stream.</div></div>
+  <div class="dashboard-actions"><button class="btn btn-outline-secondary" id="monitorRefresh" type="button"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button><% if (canGenerate) { %><a class="btn btn-primary" href="/ingest"><i class="bi bi-cloud-arrow-up me-1"></i>Import logs</a><% } %></div>
+</section>
+
+<% if (canGenerate) { %>
+<section class="panel mb-3">
+  <header class="panel-header"><div><h2 class="panel-title">Synthetic demo controls</h2><div class="panel-subtitle">Generates labeled synthetic events through the same detection pipeline. No real system is contacted.</div></div><span class="panel-tag">DEMO ONLY</span></header>
+  <div class="panel-body">
+    <div class="sim-controls">
+      <% eventTypes.forEach(type => { %><button class="btn btn-outline-secondary sim-btn" type="button" data-type="<%= type %>"><%= displayNames[type] || type %></button><% }) %>
+      <button id="demoBtn" class="btn btn-primary" type="button"><i class="bi bi-collection-play me-1"></i>Load demo data</button>
+      <button id="clearBtn" class="btn btn-outline-danger" type="button"><i class="bi bi-trash me-1"></i>Clear demo data</button>
+    </div>
+    <div id="statusBox" class="alert alert-secondary d-none mt-3 mb-0" role="status" aria-live="polite"></div>
+  </div>
+</section>
+<% } else { %>
+<div class="alert alert-secondary">Read-only role: you can inspect live events, but generating or clearing demo events requires an ADMIN or ANALYST account.</div>
+<% } %>
+
+<section class="panel">
+  <header class="panel-header">
+    <div><h2 class="panel-title">Processed event stream</h2><div class="panel-subtitle"><span id="live-event-count"><%= total %></span> matching event(s) · latest 100 shown</div></div>
+    <span class="panel-tag">NEW EVENTS ARRIVE LIVE</span>
+  </header>
+  <div class="panel-body">
+    <form method="GET" action="/simulator" class="row g-2 align-items-end mb-3" role="search">
+      <div class="col-md-5"><label class="form-label small" for="event-search">Search events</label><input id="event-search" class="form-control form-control-sm" type="search" name="search" value="<%= filters.search %>" placeholder="Message, IP, user, host, event type"></div>
+      <div class="col-md-2"><label class="form-label small" for="event-severity">Severity</label><select id="event-severity" class="form-select form-select-sm" name="severity"><option value="">All severities</option><% ['CRITICAL','HIGH','MEDIUM','LOW','INFO'].forEach(value => { %><option value="<%= value %>" <%= filters.severity === value ? 'selected' : '' %>><%= value %></option><% }) %></select></div>
+      <div class="col-md-3"><label class="form-label small" for="event-source">Source</label><select id="event-source" class="form-select form-select-sm" name="source"><option value="">All sources</option><% sources.forEach(value => { %><option value="<%= value %>" <%= filters.source === value ? 'selected' : '' %>><%= value %></option><% }) %></select></div>
+      <div class="col-md-2"><button class="btn btn-primary btn-sm w-100" type="submit"><i class="bi bi-search me-1"></i>Apply</button></div>
+    </form>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead><tr><th>Time</th><th>Event type</th><th>Severity</th><th>Source IP</th><th>Host</th><th>Message</th></tr></thead>
+        <tbody id="liveEventsBody" data-search="<%= filters.search %>" data-severity="<%= filters.severity %>" data-source="<%= filters.source %>">
+          <% if (!events.length) { %><tr class="live-events-empty"><td colspan="6"><div class="empty-state"><i class="bi bi-activity"></i>No events match these filters. Import a supported log file or load clearly labeled demo events.</div></td></tr><% } %>
+          <% events.forEach(event => { %>
+            <tr><td class="feed-time"><%= new Date(event.timestamp).toLocaleString() %></td><td class="small-mono"><%= event.event_type %></td><td><span class="badge <%= ({CRITICAL:'badge-critical',HIGH:'badge-high',MEDIUM:'badge-medium',LOW:'badge-low',INFO:'badge-info'})[event.severity] || 'badge-info' %>"><%= event.severity %></span></td><td class="small-mono"><%= event.source_ip || '—' %></td><td class="small-mono"><%= event.hostname || '—' %></td><td class="small event-message"><%= event.message %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

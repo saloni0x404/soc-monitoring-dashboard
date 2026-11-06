@@ -1,0 +1,83 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-0">Threat Intelligence</h3>
+    <div class="text-secondary small">Look up an IP address, domain, or file hash</div>
+  </div>
+</div>
+
+<% if (providers.length === 0) { %>
+  <div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-1"></i>
+    <strong>Threat intelligence provider not configured.</strong>
+    No VirusTotal / AbuseIPDB / OTX API key found in <code>.env</code>, so lookups fall back to a small local demo list.
+    The application continues to work normally.
+  </div>
+<% } else { %>
+  <div class="alert alert-success">
+    <i class="bi bi-check-circle me-1"></i>
+    Configured providers: <%= providers.map(p => p.name).join(', ') %>
+  </div>
+<% } %>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="POST" action="/threat-intel/lookup" class="row g-2 align-items-end">
+      <div class="col-md-8">
+        <label class="form-label small text-secondary">Indicator</label>
+        <input type="text" name="indicator" class="form-control form-control-sm" value="<%= query %>" placeholder="e.g. 203.0.113.45, example.com, or a file hash" required>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bi bi-search me-1"></i>Look Up</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if (result) { %>
+  <% if (result.error) { %>
+    <div class="alert alert-danger"><%= result.error %></div>
+  <% } else { %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="text-secondary text-uppercase small mb-3">Result</h6>
+        <div class="row g-2 small">
+          <div class="col-md-3"><strong>Indicator:</strong> <%= result.indicator %></div>
+          <div class="col-md-2"><strong>Type:</strong> <%= result.indicator_type %></div>
+          <div class="col-md-3"><strong>Reputation:</strong>
+            <% const rc = { MALICIOUS:'bg-danger', SUSPICIOUS:'bg-warning text-dark', CLEAN:'bg-success', UNKNOWN:'bg-secondary' }[result.reputation]; %>
+            <span class="badge <%= rc %>"><%= result.reputation %></span>
+          </div>
+          <div class="col-md-2"><strong>Country:</strong> <%= result.country || '—' %></div>
+          <div class="col-md-2"><strong>Provider:</strong> <%= result.provider %></div>
+          <div class="col-12 mt-2 text-secondary"><%= result.details %></div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+<% } %>
+
+<div class="card">
+  <div class="card-body pb-0"><h6 class="text-secondary text-uppercase small mb-3">Recent Lookups</h6></div>
+  <div class="table-responsive">
+    <table class="table table-dark table-sm align-middle mb-0">
+      <thead><tr><th>Indicator</th><th>Type</th><th>Reputation</th><th>Provider</th><th>Checked</th></tr></thead>
+      <tbody>
+        <% if (recent.length === 0) { %>
+          <tr><td colspan="5" class="text-center text-secondary py-3">No lookups yet.</td></tr>
+        <% } %>
+        <% recent.forEach(r => { %>
+          <tr>
+            <td class="small"><%= r.indicator %></td>
+            <td class="small"><%= r.indicator_type %></td>
+            <td>
+              <% const rc2 = { MALICIOUS:'bg-danger', SUSPICIOUS:'bg-warning text-dark', CLEAN:'bg-success', UNKNOWN:'bg-secondary' }[r.reputation]; %>
+              <span class="badge <%= rc2 %>"><%= r.reputation %></span>
+            </td>
+            <td class="small text-secondary"><%= r.provider || '—' %></td>
+            <td class="small text-secondary"><%= new Date(r.checked_at).toLocaleString() %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

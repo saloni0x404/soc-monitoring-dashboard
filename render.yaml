@@ -1,14 +1,28 @@
+# Render Blueprint. SQLite needs a persistent disk, which requires a paid
+# instance type. On the free plan the app still works but data resets on redeploy
+# (set DEMO_MODE=true so it re-seeds itself).
 services:
   - type: web
     name: soc-dashboard
     runtime: node
-    plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    plan: starter
+    buildCommand: npm ci --omit=dev
+    startCommand: node app.js
+    healthCheckPath: /login
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: SESSION_SECRET
         generateValue: true
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
+        sync: false        # you type this in the Render dashboard - never commit it
+      - key: DEMO_MODE
+        value: "true"
+      - key: ABUSEIPDB_API_KEY
         sync: false
+    disk:
+      name: soc-data
+      mountPath: /opt/render/project/src/database
+      sizeGB: 1

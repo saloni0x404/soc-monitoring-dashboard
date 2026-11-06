@@ -1,0 +1,90 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-0">Incident #<%= incident.id %></h3>
+    <div class="text-secondary small">Created <%= new Date(incident.created_at).toLocaleString() %></div>
+  </div>
+  <a href="/incidents" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5><%= incident.title %></h5>
+        <p class="text-secondary small" style="white-space: pre-wrap;"><%= incident.description || 'No description.' %></p>
+        <div class="row g-2 small">
+          <div class="col-6"><strong>Severity:</strong>
+            <% const bc = { CRITICAL:'badge-critical', HIGH:'badge-high', MEDIUM:'badge-medium', LOW:'badge-low' }[incident.severity] || 'badge-info'; %>
+            <span class="badge <%= bc %>"><%= incident.severity %></span>
+          </div>
+          <div class="col-6"><strong>Status:</strong> <span class="badge bg-secondary"><%= incident.status %></span></div>
+          <div class="col-6"><strong>Assigned:</strong> <%= incident.assigned_to || '—' %></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="text-secondary text-uppercase small mb-3">Related Alerts (<%= relatedAlerts.length %>)</h6>
+        <% if (relatedAlerts.length === 0) { %>
+          <div class="text-secondary small">No related alerts.</div>
+        <% } %>
+        <% relatedAlerts.forEach(a => { %>
+          <div class="mb-2">
+            <a href="/alerts/<%= a.id %>" class="text-decoration-none">
+              #<%= a.id %> — <%= a.title %> <span class="badge bg-secondary"><%= a.severity %></span>
+            </a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h6 class="text-secondary text-uppercase small mb-3">Investigation Notes</h6>
+        <pre class="small text-secondary mb-0" style="white-space: pre-wrap;"><%= incident.notes || 'No notes recorded yet.' %></pre>
+        <% if (incident.resolution) { %>
+          <hr>
+          <h6 class="text-secondary text-uppercase small mb-2">Resolution</h6>
+          <pre class="small text-secondary mb-0" style="white-space: pre-wrap;"><%= incident.resolution %></pre>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="text-secondary text-uppercase small mb-3">Update Incident</h6>
+        <form method="POST" action="/incidents/<%= incident.id %>/update">
+          <div class="mb-2">
+            <label class="form-label small text-secondary">Status</label>
+            <select name="status" class="form-select form-select-sm">
+              <% statuses.forEach(s => { %>
+                <option value="<%= s %>" <%= incident.status === s ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small text-secondary">Assigned Analyst</label>
+            <select name="assigned_to" class="form-select form-select-sm">
+              <option value="">Unassigned</option>
+              <% analysts.forEach(a => { %>
+                <option value="<%= a.username %>" <%= incident.assigned_to === a.username ? 'selected' : '' %>><%= a.username %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small text-secondary">Investigation Notes</label>
+            <textarea name="notes" rows="5" class="form-control form-control-sm"><%= incident.notes || '' %></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-secondary">Resolution</label>
+            <textarea name="resolution" rows="3" class="form-control form-control-sm"><%= incident.resolution || '' %></textarea>
+          </div>
+          <button type="submit" class="btn btn-danger btn-sm w-100">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

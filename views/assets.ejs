@@ -1,0 +1,88 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-0">Assets</h3>
+    <div class="text-secondary small"><%= assets.length %> asset(s)</div>
+  </div>
+  <button class="btn btn-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#addAssetForm">
+    <i class="bi bi-plus-lg me-1"></i>Add Asset
+  </button>
+</div>
+
+<div class="collapse mb-3" id="addAssetForm">
+  <div class="card">
+    <div class="card-body">
+      <form method="POST" action="/assets" class="row g-2 align-items-end">
+        <div class="col-md-2">
+          <label class="form-label small text-secondary">Hostname *</label>
+          <input type="text" name="hostname" class="form-control form-control-sm" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-secondary">IP</label>
+          <input type="text" name="ip" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-secondary">OS</label>
+          <input type="text" name="operating_system" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-secondary">Owner</label>
+          <input type="text" name="owner" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-secondary">Criticality</label>
+          <select name="criticality" class="form-select form-select-sm">
+            <% ['CRITICAL','HIGH','MEDIUM','LOW'].forEach(c => { %><option value="<%= c %>"><%= c %></option><% }) %>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-danger btn-sm w-100">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="GET" action="/assets" class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <input type="text" name="search" class="form-control form-control-sm" value="<%= search %>" placeholder="Search hostname, IP, or owner...">
+      </div>
+      <div class="col-md-2"><button class="btn btn-outline-light btn-sm w-100">Search</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle mb-0">
+      <thead><tr><th>Hostname</th><th>IP</th><th>OS</th><th>Owner</th><th>Criticality</th><th>Status</th><th>Last Seen</th><th></th></tr></thead>
+      <tbody>
+        <% if (assets.length === 0) { %>
+          <tr><td colspan="8" class="text-center text-secondary py-4">No assets yet. Click "Add Asset" to create one.</td></tr>
+        <% } %>
+        <% assets.forEach(a => { %>
+          <tr>
+            <td class="small fw-semibold"><%= a.hostname %></td>
+            <td class="small"><%= a.ip || '—' %></td>
+            <td class="small"><%= a.operating_system || '—' %></td>
+            <td class="small"><%= a.owner || '—' %></td>
+            <td>
+              <% const bc = { CRITICAL:'badge-critical', HIGH:'badge-high', MEDIUM:'badge-medium', LOW:'badge-low' }[a.criticality] || 'badge-info'; %>
+              <span class="badge <%= bc %>"><%= a.criticality %></span>
+            </td>
+            <td><span class="badge bg-secondary"><%= a.status %></span></td>
+            <td class="small text-secondary"><%= a.last_seen ? new Date(a.last_seen).toLocaleString() : '—' %></td>
+            <td>
+              <% if (currentUser && currentUser.role === 'ADMIN') { %>
+                <form method="POST" action="/assets/<%= a.id %>/delete" data-confirm="Delete this asset?" class="m-0">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

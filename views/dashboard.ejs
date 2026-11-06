@@ -1,0 +1,157 @@
+<section class="dashboard-heading">
+  <div>
+    <div class="eyebrow">OPERATIONS CENTER / THREAT ACTIVITY</div>
+    <h1>Security overview</h1>
+    <div class="dashboard-subtitle">Detection activity across imported and simulated log events. <span class="rules-indicator"><i class="bi bi-diagram-3"></i><%= stats.enabledRules %> rules enabled</span></div>
+  </div>
+  <div class="dashboard-actions">
+    <a class="btn btn-outline-secondary" href="/simulator"><i class="bi bi-broadcast-pin me-1"></i>Open live monitor</a>
+    <% if (currentUser && ['ADMIN','ANALYST'].includes(currentUser.role)) { %>
+      <a class="btn btn-primary" href="/ingest"><i class="bi bi-cloud-arrow-up me-1"></i>Import logs</a>
+    <% } %>
+  </div>
+</section>
+
+<section class="metric-grid" aria-label="Security metrics">
+  <article class="metric-card">
+    <div class="metric-top"><span>Events ingested</span><i class="bi bi-activity metric-icon"></i></div>
+    <div class="metric-value" id="stat-total-events"><%= stats.totalEvents %></div>
+    <div class="metric-foot">All processed log events</div>
+  </article>
+  <article class="metric-card">
+    <div class="metric-top"><span>Total alerts</span><i class="bi bi-bell metric-icon"></i></div>
+    <div class="metric-value" id="stat-total-alerts"><%= stats.totalAlerts %></div>
+    <div class="metric-foot">All recorded detections</div>
+  </article>
+  <article class="metric-card critical">
+    <div class="metric-top"><span>Open critical</span><i class="bi bi-exclamation-octagon metric-icon"></i></div>
+    <div class="metric-value" id="stat-critical-alerts"><%= stats.criticalAlerts %></div>
+    <div class="metric-foot">Open and in review</div>
+  </article>
+  <article class="metric-card high">
+    <div class="metric-top"><span>Open high</span><i class="bi bi-shield-exclamation metric-icon"></i></div>
+    <div class="metric-value" id="stat-high-alerts"><%= stats.highAlerts %></div>
+    <div class="metric-foot">Open and in review</div>
+  </article>
+  <article class="metric-card medium">
+    <div class="metric-top"><span>Open medium</span><i class="bi bi-shield-check metric-icon"></i></div>
+    <div class="metric-value" id="stat-medium-alerts"><%= stats.mediumAlerts %></div>
+    <div class="metric-foot">Open and in review</div>
+  </article>
+  <article class="metric-card low">
+    <div class="metric-top"><span>Open low</span><i class="bi bi-info-circle metric-icon"></i></div>
+    <div class="metric-value" id="stat-low-alerts"><%= stats.lowAlerts %></div>
+    <div class="metric-foot">Open and in review</div>
+  </article>
+  <article class="metric-card incidents">
+    <div class="metric-top"><span>Open incidents</span><i class="bi bi-folder2-open metric-icon"></i></div>
+    <div class="metric-value" id="stat-open-incidents"><%= stats.openIncidents %></div>
+    <div class="metric-foot">Needs analyst attention</div>
+  </article>
+  <article class="metric-card intel">
+    <div class="metric-top"><span>Malicious IPs</span><i class="bi bi-globe2 metric-icon"></i></div>
+    <div class="metric-value"><%= stats.maliciousIps %></div>
+    <div class="metric-foot">Known indicators</div>
+  </article>
+  <article class="metric-card assets">
+    <div class="metric-top"><span>Active assets</span><i class="bi bi-hdd-network metric-icon"></i></div>
+    <div class="metric-value"><%= stats.activeAssets %></div>
+    <div class="metric-foot">Active asset records</div>
+  </article>
+</section>
+
+<section class="dashboard-grid" aria-label="Event trend and alert severity">
+  <article class="panel">
+    <header class="panel-header">
+      <div><h2 class="panel-title">Event activity</h2><div class="panel-subtitle">Processed events over the last 24 hours · UTC</div></div>
+      <span class="panel-tag">24H WINDOW</span>
+    </header>
+    <div class="panel-body chart-body"><canvas id="timelineChart" role="img" aria-label="Line chart of events per hour over the last 24 hours"></canvas></div>
+  </article>
+  <article class="panel">
+    <header class="panel-header">
+      <div><h2 class="panel-title">Alert severity</h2><div class="panel-subtitle">Current distribution across all alerts</div></div>
+      <a class="panel-link" href="/alerts">View queue <i class="bi bi-arrow-up-right"></i></a>
+    </header>
+    <div class="severity-layout">
+      <div class="severity-chart"><canvas id="severityChart" role="img" aria-label="Doughnut chart showing alert counts by severity"></canvas></div>
+      <div class="severity-legend" id="severityLegend">
+        <% [['CRITICAL','#ef6c70'],['HIGH','#e89154'],['MEDIUM','#e4bb5e'],['LOW','#59a9ef']].forEach(([name,color]) => { const item = charts.severity.find(row => row.severity === name); %>
+          <div class="legend-row"><span class="legend-name"><span class="legend-dot" style="--legend-color:<%= color %>"></span><%= name %></span><span class="legend-value" data-severity-count="<%= name %>"><%= item ? item.count : 0 %></span></div>
+        <% }) %>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-grid three" aria-label="Event sources and detection context">
+  <article class="panel">
+    <header class="panel-header"><div><h2 class="panel-title">Event sources</h2><div class="panel-subtitle">Where processed events originated</div></div><span class="panel-tag"><%= charts.sources.length %> SOURCES</span></header>
+    <div class="panel-body chart-body chart-wrap"><canvas id="sourcesChart" role="img" aria-label="Chart of event counts by source"></canvas><div class="chart-empty" id="sourcesEmpty" <%= charts.sources.length ? 'hidden' : '' %>><div><i class="bi bi-inbox"></i><br>No source activity yet</div></div></div>
+  </article>
+  <article class="panel">
+    <header class="panel-header"><div><h2 class="panel-title">Top source IPs</h2><div class="panel-subtitle">Sources linked to the most alerts</div></div><a class="panel-link" href="/threat-intel">Threat intel <i class="bi bi-arrow-up-right"></i></a></header>
+    <div class="panel-body chart-body chart-wrap"><canvas id="ipsChart" role="img" aria-label="Bar chart of source IPs ranked by alert count"></canvas><div class="chart-empty" id="ipsEmpty" <%= charts.topIps.length ? 'hidden' : '' %>><div><i class="bi bi-globe2"></i><br>No alerting IPs yet</div></div></div>
+  </article>
+  <article class="panel">
+    <header class="panel-header"><div><h2 class="panel-title">Top detection rules</h2><div class="panel-subtitle">Rules creating the most alerts</div></div><a class="panel-link" href="/rules">Review rules <i class="bi bi-arrow-up-right"></i></a></header>
+    <div class="panel-body chart-body chart-wrap"><canvas id="rulesChart" role="img" aria-label="Bar chart of detection rules ranked by alert count"></canvas><div class="chart-empty" id="rulesEmpty" <%= charts.topRules.length ? 'hidden' : '' %>><div><i class="bi bi-diagram-3"></i><br>No rules have fired yet</div></div></div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-lower" aria-label="Recent alerts, events, and incidents">
+  <article class="panel">
+    <header class="panel-header">
+      <div><h2 class="panel-title">Recent alert queue</h2><div class="panel-subtitle">Latest detections, updated as alerts arrive</div></div>
+      <a class="panel-link" href="/alerts">All alerts <i class="bi bi-arrow-up-right"></i></a>
+    </header>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Detection</th><th>Severity</th><th>Risk</th><th>Source IP</th><th>Technique</th><th>Time</th></tr></thead>
+        <tbody id="recentAlertsBody">
+          <% if (!latestAlerts.length) { %><tr class="recent-alert-empty"><td colspan="6"><div class="empty-state"><i class="bi bi-shield-check"></i>No alerts yet. Import a sample log or generate demo events from Live Monitoring.</div></td></tr><% } %>
+          <% latestAlerts.forEach(alert => { const badgeClass = {CRITICAL:'badge-critical',HIGH:'badge-high',MEDIUM:'badge-medium',LOW:'badge-low'}[alert.severity] || 'badge-info'; %>
+            <tr>
+              <td><a class="feed-title alert-row-link" href="/alerts/<%= alert.id %>"><%= alert.title %></a><span class="feed-detail"><%= alert.rule_name %></span></td>
+              <td><span class="badge <%= badgeClass %>"><%= alert.severity %></span></td>
+              <td class="risk-value"><%= alert.risk_score %></td>
+              <td class="small-mono"><%= alert.source_ip || '—' %></td>
+              <td class="small-mono"><%= alert.mitre_id || '—' %></td>
+              <td class="feed-time"><%= new Date(alert.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </article>
+  <div class="activity-stack">
+  <article class="panel">
+    <header class="panel-header"><div><h2 class="panel-title">Latest events</h2><div class="panel-subtitle">Most recently processed signals</div></div><a class="panel-link" href="/logs">Event log <i class="bi bi-arrow-up-right"></i></a></header>
+    <div class="feed-list" id="recentEventsFeed">
+      <% if (!latestLogs.length) { %><div class="empty-state"><i class="bi bi-activity"></i>Waiting for the first event.</div><% } %>
+      <% latestLogs.forEach(log => { %>
+        <div class="feed-item"><span class="feed-marker" style="--feed-color:<%= log.severity === 'CRITICAL' ? '#ef6c70' : log.severity === 'HIGH' ? '#e89154' : log.severity === 'MEDIUM' ? '#e4bb5e' : '#59a9ef' %>"></span><div class="feed-content"><span class="feed-title"><%= log.event_type %> <%= log.source_ip ? '· ' + log.source_ip : '' %></span><span class="feed-detail"><%= log.message %></span></div><time class="feed-time"><%= new Date(log.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) %></time></div>
+      <% }) %>
+    </div>
+  </article>
+  <article class="panel">
+    <header class="panel-header"><div><h2 class="panel-title">Recent incidents</h2><div class="panel-subtitle">Latest case activity</div></div><a class="panel-link" href="/incidents">All incidents <i class="bi bi-arrow-up-right"></i></a></header>
+    <div class="feed-list" id="recentIncidentsFeed">
+      <% if (!latestIncidents.length) { %><div class="empty-state"><i class="bi bi-folder2-open"></i>No incidents have been opened.</div><% } %>
+      <% latestIncidents.forEach(incident => { %>
+        <a class="feed-item incident-feed-link" href="/incidents/<%= incident.id %>"><span class="feed-marker" style="--feed-color:<%= incident.severity === 'CRITICAL' ? '#ef6c70' : incident.severity === 'HIGH' ? '#e89154' : incident.severity === 'MEDIUM' ? '#e4bb5e' : '#59a9ef' %>"></span><span class="feed-content"><span class="feed-title"><%= incident.title %></span><span class="feed-detail"><%= incident.status %> · <%= incident.assigned_to || 'Unassigned' %></span></span><time class="feed-time"><%= new Date(incident.updated_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) %></time></a>
+      <% }) %>
+    </div>
+  </article>
+  </div>
+</section>
+
+<div id="chartData"
+  data-timeline-labels='<%- JSON.stringify(charts.timeline.labels) %>'
+  data-timeline-values='<%- JSON.stringify(charts.timeline.data) %>'
+  data-severity='<%- JSON.stringify(charts.severity) %>'
+  data-sources='<%- JSON.stringify(charts.sources) %>'
+  data-topips='<%- JSON.stringify(charts.topIps) %>'
+  data-toprules='<%- JSON.stringify(charts.topRules) %>'
+></div>
+

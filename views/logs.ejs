@@ -1,0 +1,107 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-0">Logs</h3>
+    <div class="text-secondary small"><%= total %> event(s) recorded</div>
+  </div>
+  <span class="badge bg-success"><i class="bi bi-broadcast me-1"></i>Live</span>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="GET" action="/logs" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Search</label>
+        <input type="text" name="search" class="form-control form-control-sm" value="<%= filters.search %>" placeholder="IP, host, user, message...">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Severity</label>
+        <select name="severity" class="form-select form-select-sm">
+          <option value="">All</option>
+          <% ['CRITICAL','HIGH','MEDIUM','LOW','INFO'].forEach(s => { %>
+            <option value="<%= s %>" <%= filters.severity === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Source</label>
+        <select name="source" class="form-select form-select-sm">
+          <option value="">All</option>
+          <% ['Windows','Linux','Firewall','Web Server'].forEach(s => { %>
+            <option value="<%= s %>" <%= filters.source === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">From</label>
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="<%= filters.dateFrom %>">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">To</label>
+        <input type="date" name="dateTo" class="form-control form-control-sm" value="<%= filters.dateTo %>">
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bi bi-search"></i></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Source</th>
+          <th>Event Type</th>
+          <th>Severity</th>
+          <th>Username</th>
+          <th>Source IP</th>
+          <th>Hostname</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <% const hasActiveFilters = filters.search || filters.severity || filters.source || filters.dateFrom || filters.dateTo; %>
+      <% const liveEnabled = page === 1 && !hasActiveFilters; %>
+      <tbody id="<%= liveEnabled ? 'logsTableBody' : '' %>">
+        <% if (logs.length === 0) { %>
+          <tr><td colspan="8" class="text-center text-secondary py-4">No logs yet. Generate some from the <a href="/simulator">Simulator</a>.</td></tr>
+        <% } %>
+        <% logs.forEach(log => { %>
+          <tr>
+            <td class="small text-secondary"><%= new Date(log.timestamp).toLocaleString() %></td>
+            <td><%= log.source %></td>
+            <td class="small"><%= log.event_type %></td>
+            <td>
+              <% const badgeClass = { CRITICAL: 'badge-critical', HIGH: 'badge-high', MEDIUM: 'badge-medium', LOW: 'badge-low', INFO: 'badge-info' }[log.severity] || 'badge-info'; %>
+              <span class="badge <%= badgeClass %>"><%= log.severity %></span>
+            </td>
+            <td class="small"><%= log.username || '—' %></td>
+            <td class="small"><%= log.source_ip || '—' %></td>
+            <td class="small"><%= log.hostname || '—' %></td>
+            <td class="small" style="max-width: 320px;"><%= log.message %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<% if (totalPages > 1) { %>
+  <nav class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center">
+      <% for (let p = 1; p <= totalPages; p++) { %>
+        <li class="page-item <%= p === page ? 'active' : '' %>">
+          <a class="page-link" href="?page=<%= p %>&search=<%= filters.search %>&severity=<%= filters.severity %>&source=<%= filters.source %>&dateFrom=<%= filters.dateFrom %>&dateTo=<%= filters.dateTo %>"><%= p %></a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+<% } %>
+
+<% if (!liveEnabled) { %>
+  <div class="alert alert-secondary mt-3">
+    <i class="bi bi-info-circle me-1"></i>
+    Live updates pause while a filter or page 2+ is active, so newly generated events don't disrupt your current view. Clear filters and return to page 1 to see events arrive in real time.
+  </div>
+<% } %>

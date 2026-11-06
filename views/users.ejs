@@ -1,0 +1,59 @@
+<div class="mb-4">
+  <h3 class="mb-0">User Management</h3>
+  <div class="text-secondary small">Admin only. Accounts are disabled, not deleted, so the audit trail stays intact.</div>
+</div>
+
+<% if (notice) { %><div class="alert alert-success"><%= notice %></div><% } %>
+<% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+
+<div class="card mb-3"><div class="card-body">
+  <h6 class="text-secondary text-uppercase small mb-3">Add user</h6>
+  <form method="POST" action="/users" class="row g-2">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="col-md-3"><input class="form-control" name="name" placeholder="Full name" required maxlength="60"></div>
+    <div class="col-md-3"><input class="form-control" name="username" placeholder="Username" required pattern="[a-zA-Z0-9_.\-]{3,32}"></div>
+    <div class="col-md-3"><input class="form-control" type="password" name="password" placeholder="Temporary password (10+ chars)" required minlength="10" autocomplete="new-password"></div>
+    <div class="col-md-2">
+      <select class="form-select" name="role">
+        <% roles.forEach(r => { %><option value="<%= r %>" <%= r === 'ANALYST' ? 'selected' : '' %>><%= r %></option><% }) %>
+      </select>
+    </div>
+    <div class="col-md-1"><button class="btn btn-danger w-100">Add</button></div>
+  </form>
+</div></div>
+
+<div class="card"><div class="table-responsive">
+  <table class="table table-dark align-middle mb-0">
+    <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Last login</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+      <% users.forEach(u => { %>
+        <tr>
+          <td><div class="fw-semibold small"><%= u.name %></div><div class="text-secondary small"><%= u.username %></div></td>
+          <td>
+            <form method="POST" action="/users/<%= u.id %>/role" class="d-flex gap-1 m-0">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <select name="role" class="form-select form-select-sm" style="width:120px">
+                <% roles.forEach(r => { %><option value="<%= r %>" <%= r === u.role ? 'selected' : '' %>><%= r %></option><% }) %>
+              </select>
+              <button class="btn btn-sm btn-outline-light">Save</button>
+            </form>
+          </td>
+          <td><% if (u.disabled) { %><span class="badge bg-secondary">Disabled</span><% } else { %><span class="badge bg-success">Active</span><% } %></td>
+          <td class="small text-secondary"><%= u.lastLogin ? new Date(u.lastLogin).toISOString().replace('T',' ').slice(0,16) + ' UTC' : 'Never' %></td>
+          <td class="text-end">
+            <form method="POST" action="/users/<%= u.id %>/reset-password" class="d-inline" data-confirm="Reset password for <%= u.username %>?">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-sm btn-outline-warning">Reset password</button>
+            </form>
+            <% if (u.id !== currentUser.id) { %>
+              <form method="POST" action="/users/<%= u.id %>/toggle" class="d-inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-sm <%= u.disabled ? 'btn-outline-success' : 'btn-outline-danger' %>"><%= u.disabled ? 'Enable' : 'Disable' %></button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div></div>

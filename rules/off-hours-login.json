@@ -1,0 +1,11 @@
+{
+  "name": "off-hours-login",
+  "title": "Off-Hours Login",
+  "description": "Successful login outside working hours (07:00-20:00 UTC).",
+  "severity": "MEDIUM",
+  "rule_type": "immediate",
+  "mitre_id": "T1078",
+  "enabled": true,
+  "workStartHour": 7,
+  "workEndHour": 20
+}

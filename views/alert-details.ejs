@@ -1,0 +1,104 @@
+<div id="alertDetailRoot" data-alert-id="<%= alert.id %>"></div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-0">Alert #<%= alert.id %>: <%= alert.title %></h3>
+    <div class="text-secondary small">Created <%= new Date(alert.created_at).toLocaleString() %></div>
+  </div>
+  <a href="/alerts" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Alerts</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="card mb-3"><div class="card-body">
+      <h6 class="text-secondary text-uppercase small mb-3">Alert Summary</h6>
+      <p><%= alert.description %></p>
+      <div class="row g-2 small">
+        <div class="col-6"><strong>Source IP:</strong> <%= alert.source_ip || '—' %></div>
+        <div class="col-6"><strong>Hostname:</strong> <%= alert.hostname || '—' %></div>
+        <div class="col-6"><strong>Username:</strong> <%= alert.username || '—' %></div>
+        <div class="col-6"><strong>Detection Rule:</strong> <%= alert.rule_name %></div>
+        <div class="col-6"><strong>Status:</strong> <span id="statusLabel" class="badge bg-secondary"><%= alert.status %></span></div>
+      </div>
+    </div></div>
+
+    <% if (technique) { %>
+      <div class="card mb-3"><div class="card-body">
+        <h6 class="text-secondary text-uppercase small mb-3">MITRE ATT&CK Technique</h6>
+        <div class="d-flex align-items-start">
+          <span class="badge bg-danger me-3"><%= technique.id %></span>
+          <div>
+            <div class="fw-semibold"><%= technique.name %></div>
+            <div class="text-secondary small mb-2">Tactic: <%= technique.tactic %></div>
+            <div class="text-secondary small"><%= technique.description %></div>
+            <a href="<%= technique.url %>" target="_blank" rel="noopener noreferrer" class="small">View on attack.mitre.org</a>
+          </div>
+        </div>
+      </div></div>
+    <% } %>
+
+    <div class="card mb-3"><div class="card-body">
+      <h6 class="text-secondary text-uppercase small mb-3">Risk Score</h6>
+      <div class="d-flex align-items-center">
+        <div class="fs-2 fw-bold me-3"><%= alert.risk_score %>/100</div>
+        <div class="text-secondary small"><%= alert.risk_explanation %></div>
+      </div>
+    </div></div>
+
+    <% if (intel) { %>
+      <div class="card mb-3"><div class="card-body">
+        <h6 class="text-secondary text-uppercase small mb-3">Threat Intelligence</h6>
+        <div class="small">
+          <% const rc = { MALICIOUS:'bg-danger', SUSPICIOUS:'bg-warning text-dark', CLEAN:'bg-success', UNKNOWN:'bg-secondary' }[intel.reputation]; %>
+          <span class="badge <%= rc %>"><%= intel.reputation %></span>
+          <span class="text-secondary ms-2"><%= intel.details %></span>
+        </div>
+      </div></div>
+    <% } %>
+
+    <div class="card mb-3"><div class="card-body">
+      <h6 class="text-secondary text-uppercase small mb-3">Evidence — Related Log Events (<%= relatedLogs.length %>)</h6>
+      <div class="table-responsive">
+        <table class="table table-dark table-sm mb-0">
+          <thead><tr><th>Time</th><th>Event Type</th><th>Source IP</th><th>Message</th></tr></thead>
+          <tbody>
+            <% relatedLogs.forEach(log => { %>
+              <tr>
+                <td class="small text-secondary"><%= new Date(log.timestamp).toLocaleString() %></td>
+                <td class="small"><%= log.event_type %></td>
+                <td class="small"><%= log.source_ip || '—' %></td>
+                <td class="small"><%= log.message %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div></div>
+
+    <div class="card"><div class="card-body">
+      <h6 class="text-secondary text-uppercase small mb-3">Raw Log</h6>
+      <pre class="small text-secondary mb-0" style="white-space: pre-wrap;"><%= relatedLogs[0] ? relatedLogs[0].raw_log : 'No raw log available' %></pre>
+    </div></div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card mb-3"><div class="card-body">
+      <h6 class="text-secondary text-uppercase small mb-3">Actions</h6>
+      <div class="d-grid gap-2">
+        <button class="btn btn-outline-light btn-sm status-btn" data-status="ACKNOWLEDGED">Acknowledge</button>
+        <button class="btn btn-outline-warning btn-sm status-btn" data-status="INVESTIGATING">Investigate</button>
+        <button class="btn btn-outline-success btn-sm status-btn" data-status="RESOLVED">Resolve</button>
+        <button class="btn btn-outline-secondary btn-sm status-btn" data-status="FALSE_POSITIVE">False Positive</button>
+        <hr class="my-2">
+        <button id="createIncidentBtn" class="btn btn-danger btn-sm">
+          <i class="bi bi-folder-plus me-1"></i>Create Incident
+        </button>
+      </div>
+    </div></div>
+
+    <div class="card"><div class="card-body">
+      <h6 class="text-secondary text-uppercase small mb-3">AI Analysis</h6>
+      <p class="text-secondary small">Run AI analysis on this alert from the <a href="/ai">AI Analyst</a> page.</p>
+    </div></div>
+  </div>
+</div>

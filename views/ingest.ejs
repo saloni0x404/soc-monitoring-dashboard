@@ -1,0 +1,45 @@
+<div class="mb-4">
+  <h3 class="mb-0">Import Logs</h3>
+  <div class="text-secondary small">Upload real log files. Events go through the same parser, detection engine and risk scoring as everything else.</div>
+</div>
+
+<div class="card mb-3"><div class="card-body">
+  <form id="ingestForm">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label small text-secondary">Log format</label>
+        <select id="logFormat" class="form-select">
+          <option value="auto">Auto-detect</option>
+          <option value="auth">Linux auth.log / secure (SSH, sudo)</option>
+          <option value="access">Web access log (Apache / Nginx)</option>
+          <option value="csv">CSV (with header row)</option>
+        </select>
+      </div>
+      <div class="col-md-8">
+        <label class="form-label small text-secondary">Log file (max ~1.5 MB)</label>
+        <input id="logFile" type="file" class="form-control" accept=".log,.txt,.csv,text/plain,text/csv">
+      </div>
+      <div class="col-12">
+        <label class="form-label small text-secondary">...or paste log lines</label>
+        <textarea id="logText" class="form-control font-monospace" rows="8" placeholder="Nov  3 02:14:07 web01 sshd[811]: Failed password for root from 203.0.113.45 port 51522 ssh2"></textarea>
+      </div>
+    </div>
+    <button id="ingestBtn" class="btn btn-danger mt-3" type="submit"><i class="bi bi-upload me-1"></i>Import &amp; Analyse</button>
+  </form>
+  <div id="ingestStatus" class="alert mt-3 d-none"></div>
+</div></div>
+
+<div class="row g-3">
+  <div class="col-md-6"><div class="card h-100"><div class="card-body">
+    <h6 class="text-secondary text-uppercase small mb-3">Try it with sample files</h6>
+    <ul class="small mb-0">
+      <li><a href="/samples/sample-auth.log" download>sample-auth.log</a> &mdash; SSH brute force, password spraying, off-hours login</li>
+      <li><a href="/samples/sample-access.log" download>sample-access.log</a> &mdash; SQL injection, path traversal, scanner</li>
+      <li><a href="/samples/sample-events.csv" download>sample-events.csv</a> &mdash; impossible travel</li>
+    </ul>
+  </div></div></div>
+  <div class="col-md-6"><div class="card h-100"><div class="card-body">
+    <h6 class="text-secondary text-uppercase small mb-3">What gets imported</h6>
+    <div class="small text-secondary">Only security-relevant lines are stored (failed/successful logins, sudo abuse, malicious web requests, HTTP 401s). Normal traffic is ignored so the database stays small. Max 2000 events per upload.</div>
+  </div></div></div>
+</div>
