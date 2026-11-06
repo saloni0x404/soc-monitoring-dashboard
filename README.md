@@ -1,113 +1,394 @@
-# AI-Powered SOC Dashboard
+# AI-Powered SOC Monitoring Dashboard
 
-A lightweight Security Operations Center dashboard in a **single Node.js process**
-(Express + SQLite + EJS + Socket.IO). It ingests real log files, detects attacks
-with a rule engine mapped to **MITRE ATT&CK**, scores risk, enriches IPs with
-**AbuseIPDB**, and shows everything live. No Redis, no Mongo, no microservices.
+**A lightweight, real-time Security Operations Center (SOC) monitoring platform for security log analysis, threat detection, and incident monitoring.**
 
-> A simulator is included for demos. Simulated events are synthetic; the **Import Logs**
-> page analyses real `auth.log`, Apache/Nginx access logs and CSV files.
+Built with Node.js, Express.js, SQLite, EJS, and Socket.IO, this project processes security logs, detects suspicious activities using a rule-based detection engine, maps findings to MITRE ATT&CK, and provides explainable risk scoring with threat intelligence enrichment.
 
-## What it does
+---
 
-| Area | Details |
-|------|---------|
-| **Log import** | Linux `auth.log`/`secure` (SSH, sudo), Apache/Nginx access logs, CSV. Auto-detect, 2000 events/upload |
-| **Detection (10 rules)** | Brute force, password spraying, port scan, impossible travel, off-hours login, web attacks (SQLi / traversal / XSS / scanners), suspicious PowerShell, privilege escalation, malware, **statistical IP-volume anomaly** |
-| **MITRE ATT&CK** | Every rule maps to a technique (T1110, T1110.003, T1078, T1190, T1595 ...) |
-| **Risk engine** | Explainable 0-100 score: severity + repeated events + threat-intel bonus |
-| **Threat intel** | Real AbuseIPDB lookups (cached 1h, 5s timeout) with automatic fallback to a local list |
-| **Live UI** | Socket.IO alerts/toasts, Chart.js dashboard, alerts -> incidents workflow, reports (CSV/JSON) |
-| **AI analyst** *(optional)* | Gemini / OpenAI / Ollama. AI only writes text; the chatbot can only call a fixed read-only allow-list, never run AI-written SQL |
-| **Admin** | User management (roles, disable, password reset), audit log |
+## Table of Contents
 
-## Security design
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [System Architecture](#system-architecture)
+- [Detection Capabilities](#detection-capabilities)
+- [MITRE ATT&CK Integration](#mitre-attck-integration)
+- [Security Architecture](#security-architecture)
+- [Project Structure](#project-structure)
+- [Installation and Setup](#installation-and-setup)
+- [Usage](#usage)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Engineering Decisions](#engineering-decisions)
+- [Future Enhancements](#future-enhancements)
+- [Limitations](#limitations)
+- [License](#license)
+- [Author](#author)
 
-- bcrypt (cost 12), account lockout (5 fails / 15 min), forced password change on first login, login rate limit
-- **CSRF protection** on every state-changing request (session-bound token, constant-time compare)
-- **Strict Content-Security-Policy** (no inline scripts, only self + jsDelivr), Helmet headers, `httpOnly`/`sameSite`/`secure` cookies
-- Role-based access (ADMIN / ANALYST / VIEWER); Socket.IO requires a logged-in session
-- Secrets only in environment variables; `.env` and `*.sqlite` are git-ignored
-- Known limitation: a disabled user's *existing* session stays valid until it expires (8h)
+---
 
-## Architecture
+## Overview
 
+The AI-Powered SOC Monitoring Dashboard is a web-based security monitoring application designed to demonstrate core Security Operations Center workflows.
+
+It provides a centralized interface for importing security logs, identifying suspicious activities, generating alerts, evaluating event risk, and monitoring security events in real time.
+
+The platform combines rule-based threat detection, MITRE ATT&CK mapping, IP reputation analysis, and optional AI-assisted security explanations.
+
+The application uses a lightweight, single-process architecture with SQLite for data persistence.
+
+**Primary objectives:**
+- Understand practical SOC monitoring workflows.
+- Analyze authentication and web server logs.
+- Identify common attack patterns.
+- Correlate security events with MITRE ATT&CK.
+- Visualize alerts and security incidents.
+- Explore threat intelligence and AI-assisted analysis.
+
+## Key Features
+
+| Feature | Description |
+|---|---|
+| Log Ingestion | Import Linux authentication, Apache, Nginx, and CSV logs |
+| Threat Detection | Identify suspicious activities using configurable detection rules |
+| MITRE ATT&CK | Map detection rules to relevant ATT&CK techniques |
+| Risk Scoring | Calculate explainable security risk scores from 0–100 |
+| Threat Intelligence | Enrich IP addresses using AbuseIPDB |
+| Real-Time Monitoring | Receive live event updates through Socket.IO |
+| Alert Management | Review alerts and manage incident workflows |
+| Data Visualization | Monitor event activity and severity using Chart.js |
+| AI Security Analyst | Optional Gemini, OpenAI, and Ollama integration |
+| Administration | Manage users, roles, and audit records |
+| Reporting | Export security reports in CSV and JSON formats |
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| Runtime | Node.js |
+| Backend | Express.js |
+| Frontend | EJS, HTML, CSS, JavaScript |
+| UI Framework | Bootstrap |
+| Database | SQLite |
+| ORM | Sequelize |
+| Real-Time Communication | Socket.IO |
+| Visualization | Chart.js |
+| Authentication | bcrypt, Express sessions |
+| Security | Helmet, CSRF protection, rate limiting |
+| Threat Intelligence | AbuseIPDB |
+| AI Integration | Gemini, OpenAI, Ollama |
+| Testing | Jest, Supertest |
+| Deployment | Docker, Render |
+
+## System Architecture
+
+The application follows a centralized event-processing architecture.
+
+```text
+                 SECURITY ANALYST
+                        |
+                        v
+                Web-Based Dashboard
+                 EJS / Bootstrap
+                        |
+                        v
+                  Express Server
+                        |
+              +---------+---------+
+              |                   |
+          Log Upload           Simulator
+              |                   |
+              +---------+---------+
+                        |
+                        v
+                    Log Parser
+                        |
+                        v
+                 Event Processing
+                        |
+                        v
+                 Detection Engine
+                        |
+              +---------+---------+
+              |                   |
+          Risk Engine        Threat Intel
+              |                   |
+              +---------+---------+
+                        |
+                        v
+                 SQLite Database
+                        |
+                        v
+                 Socket.IO Events
+                        |
+                        v
+                Live Dashboard UI
 ```
-Browser (EJS + Bootstrap + Chart.js + Socket.IO)
-        |
-Express (one process)  -- csrf / helmet / session / rate-limit
-        |
-simulator | log upload  ->  logParser -> pipeline -> detectionEngine -> riskEngine (+ threatIntel)
-        |                                                  |
-        +---------------- Sequelize ---------------- SQLite (database/soc.sqlite)
+
+Every incoming event passes through the centralized processing pipeline in `services/pipeline.js`.
+
+Detection thresholds are maintained in JSON configuration files under `rules/`.
+
+## Detection Capabilities
+
+The detection engine currently supports the following categories:
+
+| No. | Detection | Purpose |
+|---:|---|---|
+| 1 | Brute Force | Detect repeated authentication failures |
+| 2 | Password Spraying | Identify login attempts targeting multiple accounts |
+| 3 | Port Scanning | Identify suspicious scanning activity |
+| 4 | Impossible Travel | Identify unusual login location patterns |
+| 5 | Off-Hours Login | Flag authentication outside expected hours |
+| 6 | Web Attacks | Detect SQL injection, XSS, path traversal, and scanners |
+| 7 | Suspicious PowerShell | Identify suspicious PowerShell activity |
+| 8 | Privilege Escalation | Flag suspicious privilege-related events |
+| 9 | Malware Indicators | Identify events matching configured malware indicators |
+| 10 | IP Volume Anomaly | Identify statistically unusual IP activity |
+
+## MITRE ATT&CK Integration
+
+Detection rules are mapped to relevant techniques from the MITRE ATT&CK framework.
+
+Examples include:
+
+| Technique ID | Technique Name |
+|---|---|
+| T1110 | Brute Force |
+| T1110.003 | Password Spraying |
+| T1078 | Valid Accounts |
+| T1190 | Exploit Public-Facing Application |
+| T1595 | Active Scanning |
+
+This integration provides additional context for understanding detected security activities.
+
+## Security Architecture
+
+Security controls implemented in the application include:
+
+- Password hashing using bcrypt with cost factor 12.
+- Account lockout after five failed login attempts for 15 minutes.
+- Forced password change on first login.
+- Session-bound CSRF protection.
+- Helmet security headers.
+- Strict Content Security Policy.
+- HTTP-only, SameSite, and Secure cookie settings.
+- Role-based access control (ADMIN, ANALYST, VIEWER).
+- Login rate limiting.
+- Authenticated Socket.IO sessions.
+- Environment-based secret management.
+- Git-ignored `.env` and SQLite database files.
+
+**Known limitation:** Existing sessions belonging to disabled users remain valid until session expiration (up to eight hours).
+
+## Project Structure
+
+```text
+soc-monitoring-dashboard/
+│
+├── app.js
+├── routes/
+├── services/
+│   ├── logIngest
+│   ├── pipeline
+│   ├── detectionEngine
+│   ├── riskEngine
+│   ├── threatIntel
+│   ├── mitre
+│   └── aiService
+│
+├── rules/
+├── middleware/
+├── models/
+├── views/
+├── public/
+│   └── samples/
+│
+├── tests/
+├── site/
+│
+├── .env.example
+├── docker-compose.yml
+├── render.yaml
+├── package.json
+└── README.md
 ```
 
-Every event, from any source, goes through `services/pipeline.js`. Rule thresholds live in `rules/*.json`.
-Threshold rules look at windows around each log's own timestamp, so old log files are analysed correctly.
+## Installation and Setup
 
-## Run locally
+### Prerequisites
+
+- Node.js
+- npm
+- Git
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/saloni0x404/soc-monitoring-dashboard.git
+cd soc-monitoring-dashboard
+```
+
+### 2. Install dependencies
 
 ```bash
 npm install
-cp .env.example .env      # Windows: copy .env.example .env  - then edit it
-npm start                 # http://localhost:3000
 ```
 
-Set `ADMIN_PASSWORD` and `SESSION_SECRET` in `.env` first. Log in as `admin`; you must change the
-password at first login. Then try **Import Logs -> sample-auth.log**, or **Live Monitoring -> Load Demo Data**.
+### 3. Configure environment variables
+
+For Windows:
 
 ```bash
-npm test                  # unit + integration tests (Jest, supertest)
+copy .env.example .env
 ```
 
-## Deploy
+For Linux/macOS:
 
-**Render (recommended)**: push to GitHub -> Render -> *New + -> Blueprint* -> pick the repo (uses `render.yaml`).
-Enter `ADMIN_PASSWORD` when asked. `SESSION_SECRET` is generated for you.
-
-- SQLite needs a **persistent disk** (paid instance on Render). On the free plan the app works but data resets
-  on each deploy; `DEMO_MODE=true` re-seeds sample data automatically.
-- Optional: add `ABUSEIPDB_API_KEY` (free key at abuseipdb.com) for real IP reputation.
-
-**Docker**: `cp .env.example .env`, edit it, then `docker compose up -d --build` (data kept in the `soc-data` volume).
-
-## Environment variables
-
-See `.env.example`. Important: `SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `DEMO_MODE`,
-`ABUSEIPDB_API_KEY`, `AI_PROVIDER` (+ key), `CSP_REPORT_ONLY` (debug aid), `DB_PATH`.
-
-## Project layout
-
-```
-app.js            server + middleware wiring
-routes/           one file per page (ingest, users, alerts, simulator ...)
-services/         logIngest, pipeline, detectionEngine, riskEngine, threatIntel, mitre, aiService
-rules/*.json      detection rules and their thresholds
-middleware/       auth, csrf, security (helmet CSP, rate limits)
-models/           Sequelize models (SQLite)
-views/ public/    EJS pages, JS, CSS, sample logs (public/samples)
-tests/            Jest unit + supertest integration tests
+```bash
+cp .env.example .env
 ```
 
-## What I learned / design decisions (talking points)
+Configure the required variables in `.env`:
 
-- **Why one process + SQLite?** Simple to deploy and explain; the pipeline is the same shape you would later put behind a queue.
-- **Threshold rules anchored to event time**, not wall-clock time, so replaying an old log gives the same alerts.
-- **Why a statistical rule?** Fixed thresholds miss "a noisy IP among quiet ones"; comparing an IP to its peers is a tiny, explainable anomaly detector.
-- **AI safety:** the model never touches the database. It returns text, or picks a function name from an allow-list.
-- **Dedup:** one open alert per rule + IP, so a continuing attack doesn't flood the queue.
-- **Next steps:** syslog/agent ingestion, rule editing in the UI, per-user session revocation, Postgres for multi-instance deploys.
+```env
+SESSION_SECRET=your_strong_random_secret
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your_strong_admin_password
+```
+
+Never commit `.env` or expose application credentials.
+
+### 4. Start the application
+
+```bash
+npm start
+```
+
+Access the dashboard:
+
+```text
+http://localhost:3000
+```
+
+## Usage
+
+After starting the application:
+
+1. Log in using the configured administrator credentials.
+2. Change the initial administrator password.
+3. Navigate to **Import Logs**.
+4. Import a sample authentication log.
+5. Review detected events and generated alerts.
+6. Explore the live monitoring dashboard.
+7. Investigate event severity and risk scores.
+8. Explore incident management and reporting.
+9. Configure optional threat intelligence and AI integrations.
+
+A simulator is also available for demonstration purposes. Simulated events are synthetic; log imports can be used to analyze real log files.
+
+## Testing
+
+The project uses Jest and Supertest for unit and integration testing.
+
+Run the test suite:
+
+```bash
+npm test
+```
+
+## Deployment
+
+### Docker
+
+Configure `.env` and execute:
+
+```bash
+docker compose up -d --build
+```
+
+The application uses a persistent Docker volume named `soc-data`.
+
+### Render
+
+The repository includes a `render.yaml` configuration for deployment through Render Blueprints.
+
+Deployment steps:
+
+1. Push the project to GitHub.
+2. Open Render.
+3. Select New + → Blueprint.
+4. Connect the repository.
+5. Configure the required administrator password.
+6. Deploy the application.
+
+**Note:** SQLite persistence requires a persistent disk. Without persistent storage, database data may reset during redeployment.
+
+Optional AbuseIPDB integration:
+
+```env
+ABUSEIPDB_API_KEY=your_api_key
+```
+
+## Engineering Decisions
+
+**Single-process architecture:** Express and SQLite keep the application lightweight and straightforward to deploy.
+
+**Event-time-based detection:** Historical events are evaluated using their original timestamps rather than the server's current time.
+
+**Statistical anomaly detection:** IP activity is compared against other IP activity to identify unusual volume patterns.
+
+**Explainable risk scoring:** Security events receive risk scores based on severity, repeated activity, and threat intelligence.
+
+**AI safety:** The AI analyst is restricted to a predefined read-only function allow-list rather than executing AI-generated SQL.
+
+**Alert deduplication:** One open alert per rule and IP combination helps reduce repeated alerts.
+
+## Future Enhancements
+
+- Syslog and endpoint-agent ingestion.
+- Custom detection rule management.
+- Immediate session revocation.
+- PostgreSQL support for multi-instance deployments.
+- Additional threat intelligence integrations.
+- Advanced anomaly detection.
+- Enhanced incident investigation workflows.
+
+## Limitations
+
+- The application currently uses SQLite rather than a distributed database.
+- The detection engine relies on configured rules and thresholds.
+- AbuseIPDB enrichment requires an optional API key for external lookups.
+- AI-assisted analysis requires an optional provider configuration.
+- Disabled-user sessions are not immediately revoked.
+- The included simulator generates synthetic demonstration events.
 
 ## License
-MIT
 
-## Marketing site
+This project is licensed under the MIT License.
 
-A static portfolio site is in `site/`. It uses plain HTML, CSS, and browser JavaScript. To preview it locally from the project root, run `node site/serve.js` and open `http://127.0.0.1:4177/site/`. The interactive sample preview reads `public/samples/sample-auth.log` in the browser only. Deploy the `site/` directory as a static site. The `samples/` folder inside `site/` contains the auth.log used by the browser preview.
+## Author
 
-Creator/contact/GitHub details and the live demo URL are placeholders in the site because those values were not supplied. The dashboard visual is an explicitly labeled empty-data interface preview; the real application screenshots remain to be captured once the project can be run in a suitable local environment.
+**Saloni Ghodechor**
 
+Computer Engineering Student | Cybersecurity
 
-## Live dashboard UI
+Interested in:
+- Security Operations Center (SOC)
+- Threat Detection and Analysis
+- Digital Forensics
+- Incident Response
+- Defensive Security
 
-The authenticated SOC dashboard uses the existing Socket.IO stream to show connection state and update the event count, latest event feed, alert queue, severity chart, and live toast notifications. The overview charts and panels use the persisted logs and alert data.
+GitHub: [@saloni0x404](https://github.com/saloni0x404)
+
+---
+
+<p align="center">
+
+**AI-Powered SOC Monitoring Dashboard**
+
+*Building practical skills in security monitoring, threat detection, and incident analysis.*
+
+</p>
