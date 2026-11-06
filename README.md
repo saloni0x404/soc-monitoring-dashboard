@@ -15,6 +15,7 @@ Built with Node.js, Express.js, SQLite, EJS, and Socket.IO, this project process
 - [Detection Capabilities](#detection-capabilities)
 - [MITRE ATT&CK Integration](#mitre-attck-integration)
 - [Security Architecture](#security-architecture)
+- [Configuration Reference](#configuration-reference)
 - [Project Structure](#project-structure)
 - [Installation and Setup](#installation-and-setup)
 - [Usage](#usage)
@@ -38,13 +39,15 @@ The platform combines rule-based threat detection, MITRE ATT&CK mapping, IP repu
 
 The application uses a lightweight, single-process architecture with SQLite for data persistence.
 
-**Primary objectives:**
-- Understand practical SOC monitoring workflows.
+### Project Objectives
+
+- Implement practical SOC monitoring workflows.
 - Analyze authentication and web server logs.
 - Identify common attack patterns.
 - Correlate security events with MITRE ATT&CK.
 - Visualize alerts and security incidents.
-- Explore threat intelligence and AI-assisted analysis.
+- Explore threat intelligence integration.
+- Implement AI-assisted security analysis.
 
 ## Key Features
 
@@ -89,7 +92,7 @@ The application follows a centralized event-processing architecture.
                  SECURITY ANALYST
                         |
                         v
-                Web-Based Dashboard
+               Web-Based Dashboard
                  EJS / Bootstrap
                         |
                         v
@@ -132,7 +135,7 @@ Detection thresholds are maintained in JSON configuration files under `rules/`.
 
 ## Detection Capabilities
 
-The detection engine currently supports the following categories:
+The detection engine currently supports 10 categories of suspicious activity.
 
 | No. | Detection | Purpose |
 |---:|---|---|
@@ -182,13 +185,40 @@ Security controls implemented in the application include:
 
 **Known limitation:** Existing sessions belonging to disabled users remain valid until session expiration (up to eight hours).
 
+## Configuration Reference
+
+The application uses environment variables to manage authentication, security settings, integrations, and database configuration.
+
+| Variable | Purpose |
+|---|---|
+| `SESSION_SECRET` | Secure session signing |
+| `ADMIN_USERNAME` | Initial administrator username |
+| `ADMIN_PASSWORD` | Initial administrator password |
+| `DEMO_MODE` | Enable demonstration mode |
+| `ABUSEIPDB_API_KEY` | Optional IP reputation integration |
+| `AI_PROVIDER` | Configure the selected AI provider |
+| `CSP_REPORT_ONLY` | Configure Content Security Policy reporting mode |
+| `DB_PATH` | Configure the SQLite database location |
+
+### Security Recommendations
+
+- Use strong and unique credentials.
+- Generate a secure session secret.
+- Store API keys in environment variables.
+- Never commit `.env` files.
+- Do not expose credentials in screenshots or logs.
+
+Refer to `.env.example` for the available environment configuration.
+
 ## Project Structure
 
 ```text
 soc-monitoring-dashboard/
 │
 ├── app.js
+│
 ├── routes/
+│
 ├── services/
 │   ├── logIngest
 │   ├── pipeline
@@ -199,13 +229,18 @@ soc-monitoring-dashboard/
 │   └── aiService
 │
 ├── rules/
+│
 ├── middleware/
+│
 ├── models/
+│
 ├── views/
+│
 ├── public/
 │   └── samples/
 │
 ├── tests/
+│
 ├── site/
 │
 ├── .env.example
@@ -223,20 +258,21 @@ soc-monitoring-dashboard/
 - npm
 - Git
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/saloni0x404/soc-monitoring-dashboard.git
+
 cd soc-monitoring-dashboard
 ```
 
-### 2. Install dependencies
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Configure environment variables
+### 3. Configure Environment Variables
 
 For Windows:
 
@@ -260,7 +296,7 @@ ADMIN_PASSWORD=your_strong_admin_password
 
 Never commit `.env` or expose application credentials.
 
-### 4. Start the application
+### 4. Start the Application
 
 ```bash
 npm start
@@ -271,6 +307,8 @@ Access the dashboard:
 ```text
 http://localhost:3000
 ```
+
+Log in using the configured administrator credentials. You will be required to change the password on your first login.
 
 ## Usage
 
@@ -318,7 +356,7 @@ Deployment steps:
 
 1. Push the project to GitHub.
 2. Open Render.
-3. Select New + → Blueprint.
+3. Select **New + → Blueprint**.
 4. Connect the repository.
 5. Configure the required administrator password.
 6. Deploy the application.
@@ -333,17 +371,29 @@ ABUSEIPDB_API_KEY=your_api_key
 
 ## Engineering Decisions
 
-**Single-process architecture:** Express and SQLite keep the application lightweight and straightforward to deploy.
+**Single-Process Architecture**
 
-**Event-time-based detection:** Historical events are evaluated using their original timestamps rather than the server's current time.
+Express and SQLite keep the application lightweight and straightforward to deploy.
 
-**Statistical anomaly detection:** IP activity is compared against other IP activity to identify unusual volume patterns.
+**Event-Time-Based Detection**
 
-**Explainable risk scoring:** Security events receive risk scores based on severity, repeated activity, and threat intelligence.
+Historical events are evaluated using their original timestamps rather than the server's current time.
 
-**AI safety:** The AI analyst is restricted to a predefined read-only function allow-list rather than executing AI-generated SQL.
+**Statistical Anomaly Detection**
 
-**Alert deduplication:** One open alert per rule and IP combination helps reduce repeated alerts.
+IP activity is compared against other IP activity to identify unusual volume patterns.
+
+**Explainable Risk Scoring**
+
+Security events receive risk scores based on severity, repeated activity, and threat intelligence.
+
+**AI Safety**
+
+The AI analyst is restricted to a predefined read-only function allow-list rather than executing AI-generated SQL.
+
+**Alert Deduplication**
+
+One open alert per rule and IP combination helps reduce repeated alerts.
 
 ## Future Enhancements
 
@@ -374,7 +424,8 @@ This project is licensed under the MIT License.
 
 Computer Engineering Student | Cybersecurity
 
-Interested in:
+Areas of Interest:
+
 - Security Operations Center (SOC)
 - Threat Detection and Analysis
 - Digital Forensics
